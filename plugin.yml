@@ -1,0 +1,16 @@
+name: ChestPVP
+main: chestPVP.ChestPVP
+version: 0.1
+commands:
+   start:
+      description: Start the event
+      usage: /start
+   scores:
+      description: View scores
+      usage: /scores
+   s:
+      description: Alias for scores
+      usage: /s
+   event:
+      description: Start a event
+      usage: /event e
