@@ -13,16 +13,13 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
-import org.bukkit.block.DoubleChest;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.block.CraftChest;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.getspout.spout.block.SpoutCraftBlock;
 import org.getspout.spoutapi.player.SpoutPlayer;
 
 public class CommandExec implements CommandExecutor {
@@ -165,7 +162,7 @@ public class CommandExec implements CommandExecutor {
 	void event(int y) {
 		if (y == 0) {
 			// Reveal enemies
-			eventNotification("Smoke Pillars", Material.FLINT);
+			eventNotification("Smoke Pillars", Material.COAL);
 			final World w = plugin.getServer().getWorlds().get(0);
 			final int s = plugin.getServer().getScheduler()
 					.scheduleSyncRepeatingTask(plugin, new Runnable() {
@@ -189,7 +186,7 @@ public class CommandExec implements CommandExecutor {
 					}, 100L);
 		} else if (y == 1) {
 			// Exp rain
-			eventNotification("Exp rain in the center!", Material.FLINT);
+			eventNotification("Exp rain in the center!", Material.EXP_BOTTLE);
 			final World w = plugin.getServer().getWorlds().get(0);
 			final int s = plugin.getServer().getScheduler()
 					.scheduleSyncRepeatingTask(plugin, new Runnable() {
@@ -209,7 +206,7 @@ public class CommandExec implements CommandExecutor {
 
 		} else if (y == 2) {
 			// Group hug!
-			eventNotification("Group hug!", Material.FLINT);
+			eventNotification("Group hug!", Material.BED);
 			final World w = plugin.getServer().getWorlds().get(0);
 			for (Iterator<Player> i = w.getPlayers().iterator(); i.hasNext();) {
 				Player p = i.next();
@@ -219,7 +216,7 @@ public class CommandExec implements CommandExecutor {
 			}
 		} else if (y == 3) {
 			// Diamonds!
-			eventNotification("Diamonds in the center!", Material.FLINT);
+			eventNotification("Diamonds in the center!", Material.DIAMOND);
 			final World w = plugin.getServer().getWorlds().get(0);
 			final int s = plugin.getServer().getScheduler()
 					.scheduleSyncRepeatingTask(plugin, new Runnable() {
@@ -260,7 +257,7 @@ public class CommandExec implements CommandExecutor {
 					}, 100L);
 		} else if (y == 4) {
 			// Chest madness!
-			eventNotification("Chest madness!", Material.FLINT);
+			eventNotification("Chest madness!", Material.CHEST);
 			for (int i = 0; i < 20; i++) {
 				spawnChest(true);
 			}
@@ -269,7 +266,7 @@ public class CommandExec implements CommandExecutor {
 			final World w = plugin.getServer().getWorlds().get(0);
 			w.setStorm(true);
 			w.setWeatherDuration(950);
-			eventNotification("Snowstorm!", Material.FLINT);
+			eventNotification("Snowstorm!", Material.SNOW_BLOCK);
 			final int s = plugin.getServer().getScheduler()
 					.scheduleSyncRepeatingTask(plugin, new Runnable() {
 						public void run() {
@@ -382,20 +379,14 @@ public class CommandExec implements CommandExecutor {
 				mat = Material.EXP_BOTTLE; // 20
 			c.getInventory().addItem(new ItemStack(mat, amm));
 		}
+		final Location loc = c.getLocation();
 		// Remove chest after 2 minutes
 		plugin.getServer().getScheduler()
 				.scheduleSyncDelayedTask(plugin, new Runnable() {
 					public void run() {
 						c.getBlockInventory().clear();
-						c.setType(Material.AIR);
-						/*
-						 * System.out.println(eChest.getClass()); if(eChest
-						 * instanceof CraftChest){ ((CraftChest)
-						 * eChest).getInventory().clear();
-						 * eChest.setType(Material.AIR);
-						 * System.out.println("Removed a chest"); } else
-						 * System.out.println("Chest allready removed");
-						 */
+						plugin.getServer().getWorlds().get(0).getBlockAt(loc)
+								.setType(Material.AIR);
 					}
 				}, 2400L);
 	}
