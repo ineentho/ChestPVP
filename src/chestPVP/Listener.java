@@ -312,18 +312,132 @@ public class Listener implements org.bukkit.event.Listener {
 		}
 
 	}
-	
+
 	@EventHandler
-	void onLoot(PlayerPickupItemEvent e){
-		cleanInv(e.getPlayer().getInventory());
+	void onLoot(final PlayerPickupItemEvent e) {
+		plugin.getServer().getScheduler()
+				.scheduleSyncDelayedTask(plugin, new Runnable() {
+					public void run() {
+						cleanInv(e.getPlayer());
+					}
+				}, 0L);
 	}
-	
+
 	@EventHandler
-	void onGetItem (InventoryClickEvent e){
-		cleanInv(e.getWhoClicked().getInventory());
+	void onGetItem(InventoryClickEvent e) {
+		cleanInv((Player) e.getWhoClicked());
 	}
-	void cleanInv(Inventory i){
-		
+
+	@SuppressWarnings("deprecation")
+	boolean cleanInv(Player p) {
+		Inventory i = p.getInventory();
+		int nr = 0;
+		for (ItemStack item : i.getContents()) {
+			if (item != null && item.getType() != Material.AIR) {
+				boolean r = false;
+				Material m = item.getType();
+
+				// BOOTS
+				if (m == Material.LEATHER_BOOTS)
+					if (i.all(m).size() > 1)
+						r = true;
+					else if (i.contains(Material.IRON_BOOTS))
+						r = true;
+					else if (i.contains(Material.DIAMOND_BOOTS))
+						r = true;
+				if (m == Material.IRON_BOOTS)
+					if (i.all(m).size() > 1)
+						r = true;
+					else if (i.contains(Material.DIAMOND_BOOTS))
+						r = true;
+				if (m == Material.DIAMOND_BOOTS)
+					if (i.all(m).size() > 1)
+						r = true;
+
+				// LEGGINGS
+				if (m == Material.LEATHER_LEGGINGS)
+					if (i.all(m).size() > 1)
+						r = true;
+					else if (i.contains(Material.IRON_LEGGINGS))
+						r = true;
+					else if (i.contains(Material.DIAMOND_LEGGINGS))
+						r = true;
+				if (m == Material.IRON_LEGGINGS)
+					if (i.all(m).size() > 1)
+						r = true;
+					else if (i.contains(Material.DIAMOND_LEGGINGS))
+						r = true;
+				if (m == Material.DIAMOND_LEGGINGS)
+					if (i.all(m).size() > 1)
+						r = true;
+
+				// CHESTPLATE
+				if (m == Material.LEATHER_CHESTPLATE)
+					if (i.all(m).size() > 1)
+						r = true;
+					else if (i.contains(Material.IRON_CHESTPLATE))
+						r = true;
+					else if (i.contains(Material.DIAMOND_CHESTPLATE))
+						r = true;
+				if (m == Material.IRON_CHESTPLATE)
+					if (i.all(m).size() > 1)
+						r = true;
+					else if (i.contains(Material.DIAMOND_CHESTPLATE))
+						r = true;
+				if (m == Material.DIAMOND_CHESTPLATE)
+					if (i.all(m).size() > 1)
+						r = true;
+
+				// HELMET
+				if (m == Material.LEATHER_HELMET)
+					if (i.all(m).size() > 1)
+						r = true;
+					else if (i.contains(Material.IRON_HELMET))
+						r = true;
+					else if (i.contains(Material.DIAMOND_HELMET))
+						r = true;
+				if (m == Material.IRON_HELMET)
+					if (i.all(m).size() > 1)
+						r = true;
+					else if (i.contains(Material.DIAMOND_HELMET))
+						r = true;
+				if (m == Material.DIAMOND_HELMET)
+					if (i.all(m).size() > 1)
+						r = true;
+
+				// SWORDS
+				if (m == Material.WOOD_SWORD)
+					if (i.all(m).size() > 1)
+						r = true;
+					else if (i.contains(Material.STONE_SWORD))
+						r = true;
+					else if (i.contains(Material.IRON_SWORD))
+						r = true;
+					else if (i.contains(Material.DIAMOND_SWORD))
+						r = true;
+				if (m == Material.STONE_SWORD)
+					if (i.all(m).size() > 1)
+						r = true;
+					else if (i.contains(Material.IRON_SWORD))
+						r = true;
+					else if (i.contains(Material.DIAMOND_SWORD))
+						r = true;
+				if (m == Material.IRON_SWORD)
+					if (i.all(m).size() > 1)
+						r = true;
+					else if (i.contains(Material.DIAMOND_SWORD))
+						r = true;
+
+				if (r) {
+					System.out.println("Removing from slot number " + nr);
+					i.setItem(nr, new ItemStack(Material.AIR));
+					p.updateInventory();
+					return true;
+				}
+			}
+			nr++;
+		}
+		return false;
 	}
 	// CHUNKS
 	/*
