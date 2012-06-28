@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.block.Chest;
 import org.bukkit.craftbukkit.entity.CraftArrow;
@@ -41,16 +42,8 @@ public class Listener implements org.bukkit.event.Listener {
 
 	@EventHandler
 	public void onPlayerInteract(PlayerInteractEvent e) {
-		if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
-			if (e.getClickedBlock().getType() == Material.CHEST) {
-				// plugin.getServer().broadcastMessage(name +
-				// " found a chest!");
-			}
-		} else if (e.getAction() == Action.LEFT_CLICK_BLOCK
-				&& e.getClickedBlock().getType() == Material.CHEST) {
-			// plugin.getServer().broadcastMessage(name + " found a chest!");
+		if (e.getAction() == Action.LEFT_CLICK_BLOCK && e.getClickedBlock().getType() == Material.CHEST) 
 			e.getClickedBlock().setType(Material.AIR);
-		}
 	}
 
 	@EventHandler
@@ -58,8 +51,7 @@ public class Listener implements org.bukkit.event.Listener {
 		Inventory inv = e.getInventory();
 		if (inv.getType() == InventoryType.CHEST) {
 			Chest b = (Chest) inv.getHolder();
-			e.getPlayer().getWorld().getBlockAt(b.getLocation())
-					.setType(Material.AIR);
+			e.getPlayer().getWorld().getBlockAt(b.getLocation()).setType(Material.AIR);
 		}
 	}
 
@@ -70,6 +62,7 @@ public class Listener implements org.bukkit.event.Listener {
 
 	@EventHandler
 	public void onDeath(PlayerDeathEvent event) {
+		event.setDeathMessage(null);
 		boolean suicide = false;
 		if (plugin.started && !plugin.ended) {
 			// Player died
@@ -91,61 +84,38 @@ public class Listener implements org.bukkit.event.Listener {
 					if (c.getDamager() instanceof Player)
 						pl = (Player) c.getDamager();
 					else
-						pl = ((Player) ((CraftArrow) c.getDamager())
-								.getShooter());
+						pl = ((Player) ((CraftArrow) c.getDamager()).getShooter());
 				}
 				if (pl == event.getEntity()) {
 					suicide = true;
 				} else {
+					String killer = formatName(pl.getName(), plugin.scores.get(pl), +2);
+					Player pl2 = (Player) event.getEntity();
+					String dead = formatName(pl2.getName(), plugin.scores.get(pl2), -1);
+					broadcast(dead + " was slain by " + killer + ".");
 					plugin.scores.put(pl, plugin.scores.get(pl) + 2);
-					event.getEntity()
-							.getServer()
-							.broadcastMessage(
-									ChatColor.AQUA + pl.getName()
-											+ ChatColor.WHITE + " got "
-											+ ChatColor.AQUA + "2"
-											+ ChatColor.WHITE
-											+ " points, increasing to "
-											+ ChatColor.AQUA
-											+ plugin.scores.get(pl)
-											+ ChatColor.WHITE
-											+ " total points.");
 					if (plugin.scores.get(pl) > 14) {
-						plugin.getServer()
-								.broadcastMessage(
-										ChatColor.AQUA
-												+ pl.getName()
-												+ ChatColor.WHITE
-												+ " won! Server restarting & resetting in one minute.");
-						Helper.updateStatus(pl.getName()
-								+ "won, resetting soon");
-						plugin.endString = "<span style='color: white'>"
-								+ pl.getName() + " </span>won. Resetting in ";
+						for (int i = 0; i < 5; i++) {
+							broadcast(ChatColor.AQUA + pl.getName() + ChatColor.WHITE + " won!");
+						}
+						broadcast("Server restarting & resetting in one minute.");
+						plugin.endString = "<span style='color: white'>" + pl.getName() + " </span>won. Resetting in ";
 						Calendar c1 = Calendar.getInstance();
 						c1.setTimeZone(TimeZone.getTimeZone("UTC"));
 						plugin.startTime = c1.getTime().getTime();
 						plugin.ended = true;
-						plugin.getServer()
-								.getScheduler()
-								.scheduleSyncDelayedTask(plugin,
-										new Runnable() {
-											public void run() {
-												plugin.getServer()
-														.dispatchCommand(
-																Bukkit.getConsoleSender(),
-																"stop");
-											}
-										}, 1200L);
-					} else
-						suicide = true;
+						plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+							public void run() {
+								plugin.getServer().dispatchCommand(Bukkit.getConsoleSender(), "stop");
+							}
+						}, 1200L);
+					}
 				}
 				if (suicide) {
 					pl = (Player) event.getEntity();
-					event.setDeathMessage(ChatColor.AQUA + pl.getName()
-							+ ChatColor.WHITE + " lost " + ChatColor.AQUA + "1"
-							+ ChatColor.WHITE + " point, decrasing to "
-							+ ChatColor.AQUA + plugin.scores.get(pl)
-							+ ChatColor.WHITE + " total points.");
+					event.setDeathMessage(null);
+					String name = formatName("Ineentho", plugin.scores.get(pl), -1);
+					broadcast(name + " shot himself.");
 				}
 				pl = (Player) event.getEntity();
 				plugin.scores.put(pl, plugin.scores.get(pl) - 1);
@@ -153,13 +123,9 @@ public class Listener implements org.bukkit.event.Listener {
 			} else {
 				// Suicide
 				Player pl = event.getEntity();
+				String name = formatName("Ineentho", plugin.scores.get(pl), -1);
 				plugin.scores.put(pl, plugin.scores.get(pl) - 1);
-				event.setDeathMessage(ChatColor.AQUA + pl.getName()
-						+ ChatColor.WHITE + " lost " + ChatColor.AQUA + "1"
-						+ ChatColor.WHITE
-						+ " point due to suicide, decrasing to "
-						+ ChatColor.AQUA + plugin.scores.get(pl)
-						+ ChatColor.WHITE + " total points.");
+				broadcast(name + " commited suicide.");
 			}
 			Location l = event.getEntity().getLocation();
 			World w = plugin.getServer().getWorlds().get(0);
@@ -173,22 +139,20 @@ public class Listener implements org.bukkit.event.Listener {
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent e) {
 		Material m = e.getBlock().getType();
-		if (m != Material.WOOL && m != Material.OBSIDIAN
-				&& m != Material.SNOW_BLOCK && m != Material.SNOW)
+		if (m != Material.WOOL && m != Material.OBSIDIAN && m != Material.SNOW_BLOCK && m != Material.SNOW)
 			e.setCancelled(true);
 	}
 
 	@EventHandler
 	public void onBlockPlace(final BlockPlaceEvent e) {
 		Material m = e.getBlock().getType();
-		if (m == Material.ENCHANTMENT_TABLE || m == Material.FURNACE
-				|| m == Material.WORKBENCH || m == Material.BOOKSHELF) {
-			plugin.getServer().getScheduler()
-					.scheduleSyncDelayedTask(plugin, new Runnable() {
-						public void run() {
-							e.getBlock().setType(Material.AIR);
-						}
-					}, 2400L);
+		if (m == Material.ENCHANTMENT_TABLE || m == Material.FURNACE || m == Material.WORKBENCH
+				|| m == Material.BOOKSHELF) {
+			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+				public void run() {
+					e.getBlock().setType(Material.AIR);
+				}
+			}, 2400L);
 		}
 	}
 
@@ -213,63 +177,50 @@ public class Listener implements org.bukkit.event.Listener {
 			Helper.updateScoreboard(map);
 			// Check if we should start
 			int p = plugin.getServer().getOnlinePlayers().length;
-			if (p == 1)
-				event.setJoinMessage("Waiting for more players, at least "
-						+ ChatColor.AQUA + "2" + ChatColor.WHITE
-						+ " players are required to start.");
-			else if (p == 2) {
+			if (p == 1) {
+				broadcast("Waiting for more players (" + ChatColor.AQUA + "2" + ChatColor.WHITE
+						+ " required to start).");
+			} else if (p == 2) {
 				if (task == -1) {
-					event.setJoinMessage("Enough players has connected, starting in "
-							+ ChatColor.AQUA
-							+ "3"
-							+ ChatColor.WHITE
+					broadcast("Enough players has connected, starting in " + ChatColor.AQUA + "3" + ChatColor.WHITE
 							+ " minutes.");
 					Calendar ca = Calendar.getInstance();
 					ca.setTimeZone(TimeZone.getTimeZone("UTC"));
 					final long startTime = ca.getTime().getTime();
-					task = plugin.getServer().getScheduler()
-							.scheduleSyncRepeatingTask(plugin, new Runnable() {
-								public void run() {
-									// This is run every second until the event
-									// starts
-									if (plugin.started) {
-										plugin.getServer().getScheduler()
-												.cancelTask(task);
-										return;
-									}
-									countdownTime++;
-									if (countdownTime == 180) {
-										plugin.getServer().dispatchCommand(
-												Bukkit.getConsoleSender(),
-												"start");
-										plugin.getServer().getScheduler()
-												.cancelTask(task);
-										return;
-									}
-									if (countdownTime % 10 == 0)
-										plugin.getServer().broadcastMessage(
-												"Starting in " + ChatColor.AQUA
-														+ (180 - countdownTime)
-														+ ChatColor.WHITE
-														+ " seconds.");
-									// Update website
-									Calendar c = Calendar.getInstance();
-									c.setTimeZone(TimeZone.getTimeZone("UTC"));
-									long t = c.getTime().getTime();
-									int diff = (int) (180000 - (t - startTime));
-									int m = (diff / 1000) / 60;
-									int s = (diff / 1000) % 60;
-									String sM = String.valueOf(m);
-									String sS = String.valueOf(s);
-									if (sM.length() == 1)
-										sM = "0" + sM;
-									if (sS.length() == 1)
-										sS = "0" + sS;
-									Helper.updateStatus("Game starting in <span style='color:white'>("
-											+ sM + ":" + sS + ")</span>");
-								}
+					task = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+						public void run() {
+							// This is run every second until the event starts
+							if (plugin.started) {
+								plugin.getServer().getScheduler().cancelTask(task);
+								return;
+							}
+							countdownTime++;
+							if (countdownTime == 180) {
+								plugin.getServer().dispatchCommand(Bukkit.getConsoleSender(), "start");
+								plugin.getServer().getScheduler().cancelTask(task);
+								return;
+							}
+							if (countdownTime % 10 == 0)
+								broadcast("Starting in " + ChatColor.AQUA + (180 - countdownTime) + ChatColor.WHITE
+										+ " seconds.");
+							// Update website
+							Calendar c = Calendar.getInstance();
+							c.setTimeZone(TimeZone.getTimeZone("UTC"));
+							long t = c.getTime().getTime();
+							int diff = (int) (180000 - (t - startTime));
+							int m = (diff / 1000) / 60;
+							int s = (diff / 1000) % 60;
+							String sM = String.valueOf(m);
+							String sS = String.valueOf(s);
+							if (sM.length() == 1)
+								sM = "0" + sM;
+							if (sS.length() == 1)
+								sS = "0" + sS;
+							Helper.updateStatus("Game starting in <span style='color:white'>(" + sM + ":" + sS
+									+ ")</span>");
+						}
 
-							}, 20L, 20L);
+					}, 20L, 20L);
 				}
 			}
 		}
@@ -277,12 +228,11 @@ public class Listener implements org.bukkit.event.Listener {
 
 	@EventHandler
 	public void reSpawnEvent(final PlayerRespawnEvent event) {
-		plugin.getServer().getScheduler()
-				.scheduleSyncDelayedTask(plugin, new Runnable() {
-					public void run() {
-						Helper.reSpawn(event.getPlayer(), false);
-					}
-				}, 1L);
+		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+			public void run() {
+				Helper.reSpawn(event.getPlayer(), false);
+			}
+		}, 1L);
 	}
 
 	@EventHandler
@@ -315,12 +265,11 @@ public class Listener implements org.bukkit.event.Listener {
 
 	@EventHandler
 	void onLoot(final PlayerPickupItemEvent e) {
-		plugin.getServer().getScheduler()
-				.scheduleSyncDelayedTask(plugin, new Runnable() {
-					public void run() {
-						cleanInv(e.getPlayer());
-					}
-				}, 0L);
+		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+			public void run() {
+				cleanInv(e.getPlayer());
+			}
+		}, 0L);
 	}
 
 	@EventHandler
@@ -439,15 +388,25 @@ public class Listener implements org.bukkit.event.Listener {
 		}
 		return false;
 	}
-	// CHUNKS
-	/*
-	 * @EventHandler public void chunkLoad(ChunkPopulateEvent e) { Chunk c =
-	 * e.getChunk(); //delChunk(c); }
-	 * 
-	 * private void delChunk(Chunk c) { for (int x = 0; x < 16; x++) { for (int
-	 * y = 0; y < 128; y++) { for (int z = 0; z < 16; z++) { Block b =
-	 * c.getBlock(x, y, z); if (b.getX() > 200 && b.getType() != Material.AIR) {
-	 * b.setType(Material.AIR);
-	 * System.out.println("Removed block at "+b.getLocation()); } } } } }
-	 */
+
+	String formatName(String n, int s, int c) {
+		int result = s + c;
+		String prefix;
+		ChatColor ch;
+		if (c > 0) {
+			ch = ChatColor.GREEN;
+			prefix = "+";
+		} else {
+			ch = ChatColor.RED;
+			prefix = "-";
+			c = -c;
+		}
+		return ChatColor.AQUA + n + ChatColor.WHITE + "(" + ChatColor.DARK_AQUA + s + " " + ch + prefix + " " + c
+				+ " " + ChatColor.WHITE + "= " + ChatColor.DARK_AQUA + result + ChatColor.WHITE + ")";
+	}
+
+	void broadcast(String s) {
+		Server serv = plugin.getServer();
+		serv.broadcastMessage(s);
+	}
 }
