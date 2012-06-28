@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.TimeZone;
 
+import javax.swing.KeyStroke;
+import javax.swing.text.JTextComponent.KeyBinding;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -33,7 +36,11 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.getspout.spoutapi.SpoutManager;
+import org.getspout.spoutapi.event.input.KeyBindingEvent;
+import org.getspout.spoutapi.keyboard.Keyboard;
 
+@SuppressWarnings("unused")
 public class Listener implements org.bukkit.event.Listener {
 	public ChestPVP plugin;
 	Random r = new Random();
@@ -166,6 +173,7 @@ public class Listener implements org.bukkit.event.Listener {
 
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
+		// Bind hotkey
 		if (plugin.started) {
 			plugin.scores.put(event.getPlayer(), 0);
 			PlayerGui.updateAllScoreGui(plugin);

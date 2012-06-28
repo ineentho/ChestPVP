@@ -2,6 +2,7 @@ package chestPVP;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -11,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.getspout.spoutapi.SpoutManager;
 import org.getspout.spoutapi.inventory.MaterialManager;
+import org.getspout.spoutapi.keyboard.Keyboard;
 
 public class ChestPVP extends JavaPlugin {
 	boolean started = false;
@@ -19,6 +21,7 @@ public class ChestPVP extends JavaPlugin {
 	public boolean ended = false;
 	public long startTime;
 	HashMap<Player, Integer> scores = new HashMap<Player, Integer>();
+	Map<Player, Integer> scoreSize = new HashMap<Player, Integer>();
 
 	public void onDisable() {
 		Helper.updateStatus("Resetting world");
@@ -34,6 +37,7 @@ public class ChestPVP extends JavaPlugin {
 	}
 
 	public void onEnable() {
+		SpoutManager.getKeyBindingManager().registerBinding("ScoreSize",Keyboard.KEY_I,"Loop through the 3 different scoreboard sizes",new keyboardManager(this), this);
 		try {
 			Helper.updateScoreboard(scores);
 			Helper.updateStatus("Waiting for players");
