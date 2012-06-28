@@ -22,7 +22,6 @@ public class ChestPVP extends JavaPlugin {
 	public long startTime;
 	HashMap<Player, Integer> scores = new HashMap<Player, Integer>();
 	Map<Player, Integer> scoreSize = new HashMap<Player, Integer>();
-
 	public void onDisable() {
 		Helper.updateStatus("Resetting world");
 		Helper.updateScoreboard(new HashMap<Player, Integer>());

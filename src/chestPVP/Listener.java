@@ -1,6 +1,7 @@
 package chestPVP;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -36,6 +37,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.getspout.spout.SpoutPlayerListener;
 import org.getspout.spoutapi.SpoutManager;
 import org.getspout.spoutapi.event.input.KeyBindingEvent;
 import org.getspout.spoutapi.keyboard.Keyboard;
@@ -78,12 +80,15 @@ public class Listener implements org.bukkit.event.Listener {
 			boolean delayedKill = false;
 			Player delayedKiller = null;
 			if (damagers.containsKey(event.getEntity())) {
-				delayedKill = true;
-				delayedKiller = damagers.get(event.getEntity());
+
+				Damaged dmgObject = damagers.get(event.getEntity());
+				delayedKiller = dmgObject.player;
+				if ((new Date().getTime() - dmgObject.time.getTime()) < 10000)
+					delayedKill = true;
 				damagers.remove(event.getEntity());
 			}
 			if (cause instanceof EntityDamageByEntityEvent || delayedKill) {
-				Player pl;
+				Player pl = null;
 				if (delayedKill)
 					pl = delayedKiller;
 				else {
@@ -93,7 +98,7 @@ public class Listener implements org.bukkit.event.Listener {
 					else
 						pl = ((Player) ((CraftArrow) c.getDamager()).getShooter());
 				}
-				if (pl == event.getEntity()) {
+				if (suicide || pl == event.getEntity()) {
 					suicide = true;
 				} else {
 					String killer = formatName(pl.getName(), plugin.scores.get(pl), +2);
@@ -102,10 +107,18 @@ public class Listener implements org.bukkit.event.Listener {
 					broadcast(dead + " was slain by " + killer + ".");
 					plugin.scores.put(pl, plugin.scores.get(pl) + 2);
 					if (plugin.scores.get(pl) > 14) {
-						for (int i = 0; i < 5; i++) {
-							broadcast(ChatColor.AQUA + pl.getName() + ChatColor.WHITE + " won!");
+						for (Player p : Bukkit.getOnlinePlayers()) {
+							p.setFallDistance(0);
+							p.teleport(new Location(p.getWorld(), 100,Integer.MAX_VALUE,100));
 						}
-						broadcast("Server restarting & resetting in one minute.");
+						broadcast(ChatColor.BOLD+" ");
+						broadcast(ChatColor.BOLD+" ");
+						broadcast(ChatColor.BOLD + "==========================================");
+						broadcast(ChatColor.BOLD + "==============GAME HAS ENDED===============");
+						broadcast("                                       " + ChatColor.AQUA + pl.getName() + ChatColor.WHITE + " won!");
+						broadcast("            Server restarting & resetting in one minute.");
+						broadcast(ChatColor.BOLD + "=============CONGRATULATIONS!==============");
+						broadcast(ChatColor.BOLD + "==========================================");
 						plugin.endString = "<span style='color: white'>" + pl.getName() + " </span>won. Resetting in ";
 						Calendar c1 = Calendar.getInstance();
 						c1.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -256,7 +269,7 @@ public class Listener implements org.bukkit.event.Listener {
 		}
 	}
 
-	Map<Player, Player> damagers = new HashMap<Player, Player>();
+	Map<Player, Damaged> damagers = new HashMap<Player, Damaged>();
 
 	@EventHandler
 	public void onDmg(EntityDamageByEntityEvent e) {
@@ -268,7 +281,7 @@ public class Listener implements org.bukkit.event.Listener {
 			} else
 				LD = (Player) e.getDamager();
 			Player damaged = (Player) e.getEntity();
-			damagers.put(damaged, LD);
+			damagers.put(damaged, new Damaged(LD));
 			// LD damaged damaged
 		}
 

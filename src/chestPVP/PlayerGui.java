@@ -19,19 +19,23 @@ public class PlayerGui {
 		Integer s = plugin.scoreSize.get(player);
 		if (s == null)
 			s = 3;
-		int textHeight = 0, textSpace = 0; 
+		float textScale = 1;
+		int textSpace = 0, xPos = 0;
 		switch (s) {
 		case 1:
-			textHeight = 2;
-			textSpace = 3;
+			textScale = 0.4f;
+			textSpace = 4;
+			xPos = 30;
 			break;
 		case 2:
-			textHeight = 4;
+			textScale = 0.7f;
 			textSpace = 7;
+			xPos = 50;
 			break;
 		case 3:
-			textHeight = 6;
+			textScale = 1f;
 			textSpace = 10;
+			xPos = 80;
 			break;
 		}
 
@@ -39,8 +43,10 @@ public class PlayerGui {
 		pl.getMainScreen().removeWidgets(plugin);
 		GenericLabel playerName = new GenericLabel();
 		GenericLabel score = new GenericLabel();
-		playerName.setText(ChatColor.AQUA + "Player:").setX(4).setY(3).setHeight(textHeight);
-		score.setText(ChatColor.AQUA + "Score:").setX(80).setY(3).setHeight(textHeight);
+		playerName.setText(ChatColor.AQUA + "Player:").setX(4).setY(3).setHeight(5);
+		playerName.setScale(textScale);
+		score.setText(ChatColor.AQUA + "Score:").setX(xPos).setY(3).setHeight(5);
+		score.setScale(textScale);
 		pl.getMainScreen().attachWidget(plugin, playerName);
 		pl.getMainScreen().attachWidget(plugin, score);
 		int l = -1;
@@ -52,12 +58,14 @@ public class PlayerGui {
 			lineP.setY(3 + textSpace + (l * textSpace));
 			lineP.setX(4);
 			lineP.setText(p.getName());
-			lineP.setHeight(textHeight);
+			lineP.setHeight(5);
+			lineP.setScale(textScale);
 			lineS = new GenericLabel();
 			lineS.setY(3 + textSpace + (l * textSpace));
-			lineS.setHeight(textHeight);
-			lineS.setX(80);
+			lineS.setHeight(5);
+			lineS.setX(xPos);
 			lineS.setText(plugin.scores.get(p) + "");
+			lineS.setScale(textScale);
 			pl.getMainScreen().attachWidgets(plugin, lineS, lineP);
 		}
 	}
