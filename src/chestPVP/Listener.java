@@ -42,7 +42,7 @@ public class Listener implements org.bukkit.event.Listener {
 
 	@EventHandler
 	public void onPlayerInteract(PlayerInteractEvent e) {
-		if (e.getAction() == Action.LEFT_CLICK_BLOCK && e.getClickedBlock().getType() == Material.CHEST) 
+		if (e.getAction() == Action.LEFT_CLICK_BLOCK && e.getClickedBlock().getType() == Material.CHEST)
 			e.getClickedBlock().setType(Material.AIR);
 	}
 
@@ -131,6 +131,7 @@ public class Listener implements org.bukkit.event.Listener {
 			World w = plugin.getServer().getWorlds().get(0);
 			w.strikeLightningEffect(l).setFireTicks(0);
 			Helper.updateScoreboard(plugin.scores);
+			PlayerGui.updateAllScoreGui(plugin);
 			ItemStack item = new ItemStack(Material.DIAMOND, 1);
 			w.dropItem(l, item);
 		}
@@ -159,6 +160,7 @@ public class Listener implements org.bukkit.event.Listener {
 	@EventHandler
 	public void onDisconnect(PlayerQuitEvent e) {
 		plugin.scores.remove(e.getPlayer());
+		PlayerGui.updateAllScoreGui(plugin);
 		Helper.updateScoreboard(plugin.scores);
 	}
 
@@ -166,6 +168,7 @@ public class Listener implements org.bukkit.event.Listener {
 	public void onJoin(PlayerJoinEvent event) {
 		if (plugin.started) {
 			plugin.scores.put(event.getPlayer(), 0);
+			PlayerGui.updateAllScoreGui(plugin);
 			Helper.reSpawn(event.getPlayer(), false);
 			Helper.updateScoreboard(plugin.scores);
 		} else {
@@ -401,8 +404,8 @@ public class Listener implements org.bukkit.event.Listener {
 			prefix = "-";
 			c = -c;
 		}
-		return ChatColor.AQUA + n + ChatColor.WHITE + "(" + ChatColor.DARK_AQUA + s + " " + ch + prefix + " " + c
-				+ " " + ChatColor.WHITE + "= " + ChatColor.DARK_AQUA + result + ChatColor.WHITE + ")";
+		return ChatColor.AQUA + n + ChatColor.WHITE + "(" + ChatColor.DARK_AQUA + s + " " + ch + prefix + " " + c + " "
+				+ ChatColor.WHITE + "= " + ChatColor.DARK_AQUA + result + ChatColor.WHITE + ")";
 	}
 
 	void broadcast(String s) {
