@@ -114,7 +114,7 @@ public class Listener implements org.bukkit.event.Listener {
 				if (suicide) {
 					pl = (Player) event.getEntity();
 					event.setDeathMessage(null);
-					String name = formatName("Ineentho", plugin.scores.get(pl), -1);
+					String name = formatName(pl.getName(), plugin.scores.get(pl), -1);
 					broadcast(name + " shot himself.");
 				}
 				pl = (Player) event.getEntity();
@@ -123,7 +123,7 @@ public class Listener implements org.bukkit.event.Listener {
 			} else {
 				// Suicide
 				Player pl = event.getEntity();
-				String name = formatName("Ineentho", plugin.scores.get(pl), -1);
+				String name = formatName(pl.getName(), plugin.scores.get(pl), -1);
 				plugin.scores.put(pl, plugin.scores.get(pl) - 1);
 				broadcast(name + " commited suicide.");
 			}
