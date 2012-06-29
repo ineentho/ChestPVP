@@ -16,7 +16,9 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
+import org.bukkit.block.DoubleChest;
 import org.bukkit.craftbukkit.entity.CraftArrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -59,14 +61,24 @@ public class Listener implements org.bukkit.event.Listener {
 	public void onInvClose(final InventoryCloseEvent e) {
 		Inventory inv = e.getInventory();
 		if (inv.getType() == InventoryType.CHEST) {
-			Chest b = (Chest) inv.getHolder();
-			e.getPlayer().getWorld().getBlockAt(b.getLocation()).setType(Material.AIR);
+			if(inv.getHolder() instanceof DoubleChest){
+				Chest b1 = (Chest) ((DoubleChest) inv.getHolder()).getLeftSide();
+				Chest b2 = (Chest) ((DoubleChest) inv.getHolder()).getRightSide();
+				e.getPlayer().getWorld().getBlockAt(b1.getLocation()).setType(Material.AIR);
+				e.getPlayer().getWorld().getBlockAt(b2.getLocation()).setType(Material.AIR);
+			}
+			else{
+				Chest b =((Chest) inv.getHolder());
+				e.getPlayer().getWorld().getBlockAt(b.getLocation()).setType(Material.AIR);
+			}
 		}
 	}
 
 	@EventHandler
 	public void onLeave(PlayerQuitEvent e) {
 		plugin.scores.remove(e.getPlayer());
+		if(Bukkit.getOnlinePlayers().length==1)
+			plugin.getServer().dispatchCommand(Bukkit.getConsoleSender(), "stop");
 	}
 
 	@EventHandler
@@ -187,6 +199,11 @@ public class Listener implements org.bukkit.event.Listener {
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
 		// Bind hotkey
+		if(plugin.ended)
+		{
+			event.getPlayer().teleport(new Location(event.getPlayer().getWorld(), 100,Integer.MAX_VALUE,100));
+			return;
+		}
 		if (plugin.started) {
 			plugin.scores.put(event.getPlayer(), 0);
 			PlayerGui.updateAllScoreGui(plugin);
@@ -252,6 +269,11 @@ public class Listener implements org.bukkit.event.Listener {
 
 	@EventHandler
 	public void reSpawnEvent(final PlayerRespawnEvent event) {
+		if(plugin.ended)
+		{
+			event.getPlayer().teleport(new Location(event.getPlayer().getWorld(), 100,Integer.MAX_VALUE,100));
+			return;
+		}
 		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 			public void run() {
 				Helper.reSpawn(event.getPlayer(), false);
@@ -300,7 +322,6 @@ public class Listener implements org.bukkit.event.Listener {
 	void onGetItem(InventoryClickEvent e) {
 		cleanInv((Player) e.getWhoClicked());
 	}
-
 	@SuppressWarnings("deprecation")
 	boolean cleanInv(Player p) {
 		Inventory i = p.getInventory();
